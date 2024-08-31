@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdlib.h>
 
 struct no {
     struct no *ant;
@@ -11,131 +12,199 @@ struct lista {
     struct no *fim;
 };
 
-char ehVazio(struct lista* l) {
-    if (l == NULL)
-        return 0;
-    return 1;
+//Função que verifica se a lista está vazia
+char ehVazia(struct lista *l) {
+    if (l->inicio == NULL)
+        return 1;
+    return 0;
 }
 
-void inicializa(struct lista* l) {
+//Função que inicializa a lista
+void inicializar(struct lista *l) {
     l->inicio = NULL;
     l->fim = NULL;
 }
 
-void insere(struct lista* l, int dado) {
-    struct no *novo = (struct no*) malloc(sizeof(struct no));
-    novo->dado = dado;
-    if (l->inicio == NULL) {
-        l->inicio = novo;
-        l->fim = novo;
+//Inserção no início da lista
+//Retorna 0 se a inserção foi bem sucedida
+//Retorna 1 se a alocação de memória falhou
+char inserir_inicio(struct lista *l, int valor) {
+    struct no* novo = (struct no*) malloc(sizeof(struct no));
+
+    if (novo == NULL) {
+        return 1;
+    }
+
+    novo->dado = valor;
+
+    if (ehVazia(l)) {
         novo->prox = novo;
         novo->ant = novo;
-    } else {
-        novo->prox = l->inicio;
-        novo->ant = l->fim;
-        l->fim->prox = novo;
-        l->inicio->ant = novo;
+        l->inicio = novo;
         l->fim = novo;
+        return 0;
     }
+
+    novo->prox = l->inicio;
+    novo->ant = l->fim;
+    l->inicio->ant = novo;
+    l->fim->prox = novo;
+    l->inicio = novo;
+
+    return 0;
 }
 
-void imprime(struct lista* l) {
-    struct no *aux = l->inicio;
-    if (ehVazio(l)) {
-        do {
-            printf("%d\n", aux->dado);
-            aux = aux->prox;
-        } while (aux != l->inicio);
+//Inserção no fim da lista
+//Retorna 0 se a inserção foi bem sucedida
+//Retorna 1 se a alocação de memória falhou
+char inserir_fim(struct lista *l, int valor) {
+    struct no* novo = (struct no*) malloc(sizeof(struct no));
+
+    if (novo == NULL) {
+        return 1;
     }
+
+    novo->dado = valor;
+
+    if (ehVazia(l)) {
+        novo->prox = novo;
+        novo->ant = novo;
+        l->inicio = novo;
+        l->fim = novo;
+        return 0;
+    }
+
+    novo->prox = l->inicio;
+    novo->ant = l->fim;
+    l->inicio->ant = novo;
+    l->fim->prox = novo;
+    l->fim = novo;
+
+    return 0;
 }
 
-void imprimeReverso(struct lista* l) {
-    struct no *aux = l->fim;
-    if (ehVazio(l)) {
-        do {
-            printf("%d\n", aux->dado);
-            aux = aux->ant;
-        } while (aux != l->fim);
+//Remoção do início da lista
+//Retorna 0 se a remoção foi bem sucedida
+//Retorna 1 se a lista estava vazia
+char remover_inicio(struct lista *l) {
+    if (ehVazia(l)) {
+        return 1;
     }
+
+    struct no* aux = l->inicio;
+
+    if (l->inicio == l->fim) {
+        l->inicio = NULL;
+        l->fim = NULL;
+        free(aux);
+        return 0;
+    }
+
+    l->inicio = l->inicio->prox;
+    l->inicio->ant = l->fim;
+    l->fim->prox = l->inicio;
+    free(aux);
+
+    return 0;
 }
 
-void removeNo(struct lista* l, int dado) {
-    struct no *aux = l->inicio;
-    if (ehVazio(l)) {
-        do {
-            if (aux->dado == dado) {
-                if (aux == l->inicio) {
-                    l->inicio = aux->prox;
-                    l->fim->prox = l->inicio;
-                    l->inicio->ant = l->fim;
-                    free(aux);
-                    return;
-                } else if (aux == l->fim) {
-                    l->fim = aux->ant;
-                    l->inicio->ant = l->fim;
-                    l->fim->prox = l->inicio;
-                    free(aux);
-                    return;
-                } else {
-                    aux->ant->prox = aux->prox;
-                    aux->prox->ant = aux->ant;
-                    free(aux);
-                    return;
-                }
-            }
-            aux = aux->prox;
-        } while (aux != l->inicio);
+//Remoção do fim da lista
+//Retorna 0 se a remoção foi bem sucedida
+//Retorna 1 se a lista estava vazia
+char remover_fim(struct lista *l) {
+    if (ehVazia(l)) {
+        return 1;
     }
+
+    struct no* aux = l->fim;
+
+    if (l->inicio == l->fim) {
+        l->inicio = NULL;
+        l->fim = NULL;
+        free(aux);
+        return 0;
+    }
+
+    l->fim = l->fim->ant;
+    l->fim->prox = l->inicio;
+    l->inicio->ant = l->fim;
+    free(aux);
+
+    return 0;
+}
+
+//Função que mostra os elementos da lista
+void mostrar(struct lista *l) {
+    struct no* aux = l->inicio;
+
+    if (ehVazia(l)) {
+        printf("Lista vazia\n");
+        return;
+    }
+
+    if (l->inicio == l->fim) {
+        printf("\nLista:\n");
+        printf("%d -> Inicio\n", l->inicio->dado);
+        return;
+    }
+
+    printf("\nLista:\n");
+    do {
+        printf("%d -> ", aux->dado);
+        aux = aux->prox;
+    } while (aux != l->inicio);
+
+    printf("Inicio\n");
 }
 
 int main() {
     struct lista l;
-    inicializa(&l);
-    
-    int opcao, dado;
-    
+    inicializar(&l);
+
+    int escolha, rtrn;
+
     do {
-        printf("Menu:\n");
-        printf("1. Inserir elemento\n");
-        printf("2. Remover elemento\n");
-        printf("3. Imprimir lista\n");
-        printf("4. Imprimir lista reversa\n");
-        printf("0. Sair\n");
-        printf("Escolha uma opcao: ");
-        scanf("%d", &opcao);
-        
-        switch (opcao) {
+        printf("\nMenu\n");
+        printf("1 - Inserir no inicio\n");
+        printf("2 - Inserir no fim\n");
+        printf("3 - Remover do inicio\n");
+        printf("4 - Remover do fim\n");
+        printf("5 - Mostrar lista\n");
+        printf("6 - Sair\n");
+        scanf("%d", &escolha);
+
+        switch (escolha) {
             case 1:
-                printf("Digite o elemento a ser inserido: ");
-                scanf("%d", &dado);
-                insere(&l, dado);
-                printf("Elemento inserido com sucesso!\n");
+                printf("Digite o valor a ser inserido: ");
+                scanf("%d", &rtrn);
+                if (inserir_inicio(&l, rtrn)) {
+                    printf("Erro ao inserir\n");
+                }
                 break;
             case 2:
-                printf("Digite o elemento a ser removido: ");
-                scanf("%d", &dado);
-                removeNo(&l, dado);
-                printf("Elemento removido com sucesso!\n");
+                printf("Digite o valor a ser inserido: ");
+                scanf("%d", &rtrn);
+                if (inserir_fim(&l, rtrn)) {
+                    printf("Erro ao inserir\n");
+                }
                 break;
             case 3:
-                printf("Lista:\n");
-                imprime(&l);
+                if (remover_inicio(&l)) {
+                    printf("Erro ao remover\n");
+                }
                 break;
             case 4:
-                printf("Lista reversa:\n");
-                imprimeReverso(&l);
+                if (remover_fim(&l)) {
+                    printf("Erro ao remover\n");
+                }
                 break;
-            case 0:
-                printf("Saindo...\n");
+            case 5:
+                mostrar(&l);
+                break;
+            case 6:
                 break;
             default:
-                printf("Opcao invalida!\n");
-                break;
+                printf("Opção invalida\n");
         }
-        
-        printf("\n");
-        
-    } while (opcao != 0);
-    
-    return 0;
+    } while (escolha != 6);
 }
